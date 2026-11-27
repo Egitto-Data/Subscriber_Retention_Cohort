@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "SaaS_Subscribers_Retention_Cohort"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "35322d68-4723-4cdc-8672-7b799c77503d"
+  }
+}

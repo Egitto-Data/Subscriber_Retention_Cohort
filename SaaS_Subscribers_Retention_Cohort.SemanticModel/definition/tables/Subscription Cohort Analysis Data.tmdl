@@ -1,0 +1,164 @@
+table 'Subscription Cohort Analysis Data'
+	lineageTag: 74501c79-db92-4ee4-b353-22084cf2ccbf
+
+	measure 'Customer Retention Volume' = ```
+			
+			VAR CurrentCohortMonth = SELECTEDVALUE ( 'Subscription Cohort Analysis Data'[Created Date (SOM)] )
+			VAR CurrentTenureMonth = SELECTEDVALUE ( 'Subscription Cohort Analysis Data'[Month List] )
+			RETURN
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Subscription Cohort Analysis Data'[customer_id] ),
+			    FILTER (
+			        'Subscription Cohort Analysis Data',
+			        'Subscription Cohort Analysis Data'[Created Date (SOM)] = CurrentCohortMonth
+			            && 'Subscription Cohort Analysis Data'[Month List] = CurrentTenureMonth
+			    )
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 4e94aaeb-86be-47e5-bc39-21403ade7717
+
+	measure 'Customer Retention %' = ```
+			
+			VAR FirstMonthSubscriptionVolume = 
+			CALCULATE(
+			    DISTINCTCOUNT(
+			        'Subscription Cohort Analysis Data'[customer_id]
+			    ),
+			    ALLEXCEPT(
+			        'Subscription Cohort Analysis Data',
+			        'Subscription Cohort Analysis Data'[Created Date (SOM)]
+			    )
+			)
+			VAR Ratio = 
+			DIVIDE(
+			    [Customer Retention Volume],
+			    FirstMonthSubscriptionVolume
+			)
+			RETURN Ratio
+			
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: e66e000a-ef1b-496c-a48e-2f05e499f3f4
+
+	column customer_id
+		dataType: int64
+		formatString: 0
+		lineageTag: ceb1dd5d-fde6-42b1-a61a-6cd84b3a4945
+		summarizeBy: sum
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column created_date
+		dataType: dateTime
+		formatString: mm/dd/yyyy
+		lineageTag: a302b0cf-d455-4979-80ae-9ab4dfe69a38
+		summarizeBy: none
+		sourceColumn: created_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column canceled_date
+		dataType: dateTime
+		formatString: mm/dd/yyyy
+		lineageTag: 55e5eef9-91b6-4e8a-a1df-2de17cf1655e
+		summarizeBy: none
+		sourceColumn: canceled_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column subscription_cost
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 62a0a2d4-7795-473b-bd4a-f33bb9603d32
+		summarizeBy: sum
+		sourceColumn: subscription_cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column subscription_interval
+		dataType: string
+		lineageTag: 78f6086c-848a-4754-9884-a3b40fbcb4e6
+		summarizeBy: none
+		sourceColumn: subscription_interval
+
+		annotation SummarizationSetBy = Automatic
+
+	column was_subscription_paid
+		dataType: string
+		lineageTag: 505ce156-f820-489d-83d5-09ff79c00533
+		summarizeBy: none
+		sourceColumn: was_subscription_paid
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Created Date (SOM)'
+		dataType: dateTime
+		formatString: MMM yyyy
+		lineageTag: 056b977e-bec3-4555-8ccf-55bbf350fe2f
+		summarizeBy: none
+		sourceColumn: Created Date (SOM)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	column 'Month Span'
+		dataType: int64
+		formatString: 0
+		lineageTag: 91c0be18-ce66-48bf-af97-3c011e910003
+		summarizeBy: sum
+		sourceColumn: Month Span
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month List'
+		dataType: int64
+		formatString: 0
+		lineageTag: d839c625-27d9-485b-a838-8e04f8f763c7
+		summarizeBy: sum
+		sourceColumn: Month List
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Subscription Cohort Analysis Data' = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("G:\Subscriber_Retention_Cohort\dataset\StreamingVideoSubscriptions\Subscription Cohort Analysis Data.csv"),[Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"customer_id", Int64.Type}, {"created_date", type date}, {"canceled_date", type date}, {"subscription_cost", Currency.Type}, {"subscription_interval", type text}, {"was_subscription_paid", type text}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([was_subscription_paid] = "Yes")),
+				    #"Replaced Value" = Table.ReplaceValue(#"Filtered Rows",null,#date(2023, 9, 30),Replacer.ReplaceValue,{"canceled_date"}),
+				    #"Sorted Rows" = Table.Sort(#"Replaced Value",{{"canceled_date", Order.Ascending}}),
+				    #"Inserted Start of Month" = Table.AddColumn(#"Sorted Rows", "Start of Month", each Date.StartOfMonth([created_date]), type date),
+				    #"Renamed Columns" = Table.RenameColumns(#"Inserted Start of Month",{{"Start of Month", "Created Date (SOM)"}}),
+				    #"Added Custom" = Table.AddColumn(#"Renamed Columns", "Month Span", each 12 * (Date.Year([canceled_date]) - Date.Year([created_date]))
+				+ (Date.Month([canceled_date]) - Date.Month([created_date]))
+				+ (if Date.Day([canceled_date]) < Date.Day([created_date]) then -1 else 0)
+				+ 1),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "Month List", each List.Numbers(1, [Month Span]), type list),
+				    #"Expanded Month List" = Table.ExpandListColumn(#"Added Custom1", "Month List"),
+				    #"Filtered Rows1" = Table.SelectRows(#"Expanded Month List", each true),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Filtered Rows1",{{"Month Span", Int64.Type}, {"Month List", Int64.Type}, {"Created Date (SOM)", type date}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
