@@ -25,6 +25,10 @@ The retention cohort matrix groups subscriptions by **signup month (`Created Dat
 └── SaaS_Subscribers_Retention_Cohort.pbip          # Power BI Project entry file
 
 
+
+
+
+
 ## Data Transformation (Power Query M)
 
 The dataset was transformed using Power Query to prepare it for cohort-based retention analysis.
