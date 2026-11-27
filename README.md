@@ -12,7 +12,7 @@ The retention cohort matrix groups subscriptions by **signup month (`Created Dat
 * **How right-censoring affects recent cohorts:** Because the dataset ends on **September 8, 2023**, earlier cohorts have longer observed tenure (up to **13** months for September 2022), while recent cohorts have fewer completed months.
 
 ## Cohort Retention Matrix Preview
-![SaaS Subscribers Retention Cohort in Power BI](viz/cohort_retention_matrix.png)
+![SaaS Subscribers Retention Cohort in Power BI]([viz/cohort_retention_matrix.png](https://github.com/Egitto-Data/Subscriber_Retention_Cohort/blob/main/viz/Capture.PNG))
 
 ## Repository Structure
 ```text
