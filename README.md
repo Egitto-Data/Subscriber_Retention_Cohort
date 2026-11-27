@@ -14,15 +14,7 @@ The retention cohort matrix groups subscriptions by **signup month (`Created Dat
 ## Cohort Retention Matrix Preview
 ![SaaS Subscribers Retention Cohort in Power BI](https://github.com/Egitto-Data/Subscriber_Retention_Cohort/blob/main/viz/Capture.PNG)
 
-## Repository Structure
-```text
-├── dataset/                                        # Source CSV dataset
-├── SaaS_Subscribers_Retention_Cohort.Report/         # Power BI report definitions
-├── SaaS_Subscribers_Retention_Cohort.SemanticModel/  # Data model, relationships, and DAX measures
-├── viz/                                            # Visual exports and screenshots
-├── .gitignore                                      # Git ignore rules
-├── README.md                                       # Project documentation
-└── SaaS_Subscribers_Retention_Cohort.pbip          # Power BI Project entry file
+
 
 
 
